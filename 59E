@@ -1,0 +1,101 @@
+#include <bits/stdc++.h>
+#define lli long long int
+#define pll pair<lli,lli>
+#define N 3005
+using namespace std;
+struct node 
+{
+	lli ver,cost,prev;
+	node (lli v, lli w, lli u)
+	{
+		ver=v; cost=w; prev=u;
+	}
+	bool operator < (const node &a) const
+	{
+		return cost>a.cost;
+	}
+};
+struct trip
+{
+	lli a,b,c;
+	trip (lli x, lli y, lli z)
+	{
+		a=x; b=y; c=z;
+	}
+	bool operator < (const trip &ab) const
+	{
+		if (a!=ab.a) return a>ab.a;
+		if (b!=ab.b) return b>ab.b;
+		return c>ab.c;
+	}
+};
+map<trip,lli>m;
+vector<node> adj[N];
+lli n,di[N][N],canh,k,d;
+pll cha[N][N];
+void bfs (lli s)
+{
+	priority_queue<node>q;
+	q.push(node(s,0,0));
+	for (int i=1;i<=n;i++) for (int j=1;j<=N;j++) di[i][j]=(lli)1e18;
+	for (int i=1;i<=n;i++) for (int j=1;j<=n;j++) cha[i][j]=make_pair(-1LL,-1LL);
+	di[s][0]=0;
+	while (!q.empty())
+	{
+		lli u=q.top().ver, upre=q.top().prev, cost=q.top().cost;
+		q.pop();
+		if (di[u][upre]!=cost) continue;
+		for (int i=0;i<adj[u].size();i++)
+		{
+			lli nd=adj[u][i].ver, we=adj[u][i].cost;
+			trip trp=trip(upre,u,nd);
+			if (m.count(trp)) continue;
+			if (di[u][upre]+we<di[nd][u])
+			{
+				di[nd][u]=di[u][upre]+we;
+				q.push(node(nd,di[nd][u],u));
+				cha[nd][u]=pll(u,upre);
+			}
+		}
+	}
+}
+void track_parent (lli u, lli prev)
+{
+    if (cha[u][prev].first<=0) {cout<<u<<" "; return;}
+    pll p=cha[u][prev];
+    track_parent(p.first,p.second);
+    cout<<u<<" ";
+}
+int main () 
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    lli a,b,c,w;
+    cin>>n>>canh>>k;
+    for (int i=1;i<=canh;i++) 
+	{
+        cin>>a>>b;
+        adj[a].push_back(node(b,1,0));
+        adj[b].push_back(node(a,1,0));
+    }
+
+    for (int i=0;i<k;i++)
+	{
+        cin>>a>>b>>c;
+        trip nds=trip(a,b,c);
+        m[nds]=1;
+    }
+    bfs(1);
+    lli mini=1e18,prev=-1;
+    for (int i=1;i<=n;i++) 
+	{
+        if (di[n][i]<mini) prev=i;
+        mini=min(mini,di[n][i]);
+    }
+    if (mini==1e18) cout<<-1;
+    else 
+	{
+        cout<<mini<<"\n";
+        track_parent(n,prev);
+    }
+}
